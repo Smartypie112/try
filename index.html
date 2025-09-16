@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filtered Search Engine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 { margin-top: 40px; }
+    .search-box {
+      margin: 20px 0;
+      display: flex;
+      width: 90%;
+      max-width: 600px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #dfe1e5;
+      border-radius: 24px 0 0 24px;
+      outline: none;
+      font-size: 16px;
+    }
+    .search-box button {
+      padding: 12px 20px;
+      border: 1px solid #dfe1e5;
+      border-left: none;
+      border-radius: 0 24px 24px 0;
+      background: #4285f4;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #results { margin-top: 20px; width: 90%; max-width: 800px; }
+    .warning { color: red; font-weight: bold; margin: 10px 0; }
+    .result { background: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="search-box">
+    <input type="text" id="query" placeholder="Search something...">
+    <button onclick="search()">Search</button>
+  </div>
+
+  <div id="warning"></div>
+  <div id="results"></div>
+
+  <script>
+    // 🚫 Blocked words
+    const blockedWords = ["porn", "sex", "xxx","rule34","bhabhi","stepsister","34","fuck","horny","naked","nude","pics","pussy","penis","vagina","dick","lust","panty","bra","swimsuit","choda","cum"];
+
+    async function search() {
+      const query = document.getElementById("query").value.trim().toLowerCase();
+      const warningEl = document.getElementById("warning");
+      warningEl.innerHTML = ""; // clear old warnings
+
+      // 1. Check blocked words
+      for (let word of blockedWords) {
+        if (query.includes(word)) {
+          warningEl.innerHTML = `<p class="warning">❌ Say confidently, Your'e weak lust 😏</p>`;
+          return; // stop search
+        }
+      }
+
+      // 3. Continue with search
+      const apiKey = "AIzaSyCecbQMOJTSW5K-oH0HXgmA0oj_7eAw4NM";
+      const cx = "d1948305f96ee4ea6";
+
+      const response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+
+      let output = "";
+      if (data.items) {
+        data.items.forEach(item => {
+          output += `<div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <p>${item.snippet}</p>
+          </div>`;
+        });
+      } else {
+        output = "<p>No results found.</p>";
+      }
+
+      document.getElementById("results").innerHTML = output;
+    }
+
+    // Allow pressing Enter to search
+    document.getElementById("query").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") search();
+    });
+  </script>
+</body>
+</html>
