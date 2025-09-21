@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+          <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -54,51 +54,69 @@
   <div id="warning"></div>
   <div id="results"></div>
 
-  <script>
-    // 🚫 Blocked words
-    const blockedWords = ["porn", "sex", "xxx","rule34","bhabhi","stepsister","34","fuck","horny","naked","nude","pics","pussy","penis","vagina","dick","lust","panty","bra","swimsuit","choda","cum"];
+<script>
+  // 🚫 Blocked words
+  const blockedWords = ["porn", "sex", "xxx","rule34","bhabhi","34","fuck","horny","naked","nude","pics","pussy","penis","vagina","dick","lust","panty","bra","swimsuit","choda","cum"];
 
-    async function search() {
-      const query = document.getElementById("query").value.trim().toLowerCase();
-      const warningEl = document.getElementById("warning");
-      warningEl.innerHTML = ""; // clear old warnings
+  async function search() {
+    const query = document.getElementById("query").value.trim().toLowerCase();
+    const warningEl = document.getElementById("warning");
+    warningEl.innerHTML = ""; // clear old warnings
 
-      // 1. Check blocked words
-      for (let word of blockedWords) {
-        if (query.includes(word)) {
-          warningEl.innerHTML = `<p class="warning">❌ Say confidently, Your'e weak lust 😏</p>`;
-          return; // stop search
-        }
+    // 1. Hardcoded blocked words check
+    for (let word of blockedWords) {
+      if (query.includes(word)) {
+        warningEl.innerHTML = `<p class="warning">❌ Say confidently, You're weak lust 😏</p>`;
+        return; // stop search
       }
-
-      // 3. Continue with search
-      const apiKey = "AIzaSyCecbQMOJTSW5K-oH0HXgmA0oj_7eAw4NM";
-      const cx = "d1948305f96ee4ea6";
-
-      const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`
-      );
-      const data = await response.json();
-
-      let output = "";
-      if (data.items) {
-        data.items.forEach(item => {
-          output += `<div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <p>${item.snippet}</p>
-          </div>`;
-        });
-      } else {
-        output = "<p>No results found.</p>";
-      }
-
-      document.getElementById("results").innerHTML = output;
     }
 
-    // Allow pressing Enter to search
-    document.getElementById("query").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") search();
-    });
-  </script>
+    // 2. Ask AI filter at localhost:3000
+    try {
+      const aiResponse = await fetch("http://localhost:3000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: query })
+      });
+
+      const aiResult = await aiResponse.json();
+
+      if (!aiResult.isPure) {
+        warningEl.innerHTML = `<p class="warning">❌ Say confidently, You're weak lust 😏</p>`;
+           return; // stop search
+      }
+    } catch (err) {
+      console.error("AI filter error:", err);
+    }
+
+    // 3. Continue with Google Search
+    const apiKey = "AIzaSyCecbQMOJTSW5K-oH0HXgmA0oj_7eAw4NM";
+    const cx = "d1948305f96ee4ea6";
+
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`
+    );
+    const data = await response.json();
+
+    let output = "";
+    if (data.items) {
+      data.items.forEach(item => {
+        output += `<div class="result">
+          <a href="${item.link}" target="_blank">${item.title}</a>
+          <p>${item.snippet}</p>
+        </div>`;
+      });
+    } else {
+      output = "<p>No results found.</p>";
+    }
+
+    document.getElementById("results").innerHTML = output;
+  }
+
+  // Allow pressing Enter to search
+  document.getElementById("query").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") search();
+  });
+</script>
 </body>
-</html>
+  </html>
